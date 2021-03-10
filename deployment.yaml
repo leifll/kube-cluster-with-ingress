@@ -1,37 +1,55 @@
-#För att det ska funka med extern access behövs även en ingress och en ingress-controller. Ingress är (nog) ett kubernetes-objekt som definierar ingress:en, och ingress-controller är (nog) själva servern som tar emot tcp-anrop utifrån. Se https://kubernetes.io/docs/concepts/services-networking/ingress/
+# Testa  kubectl get pod --namespace ingress-nginx och kubectl get service.
+# Som synes har ingen service en extern ip. Det funkar heller inte att anropa dem på localhost.
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tomcat-ingress
+  annotations:
+    kubernetes.io/ingress.class: 'nginx'
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /leffe
+            pathType: Prefix
+            backend:
+              service:
+                name: leffes-web-server
+                port:
+                  name: leffes-port
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
-  name:  web-port
+  name: leffes-web-service
 spec:
   selector:
-    app:  tomcat
+    app: leffes-tomcat-node
   ports:
-  - name:  web-server-port
-    port:  80
-    targetPort:  8080
+    - name: leffes-port
+      port: 80
+      targetPort: 8080
 
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tomcat-deployment
+  name: leffes-tomcat-deployment
 spec:
   selector:
     matchLabels:
-      app: tomcat
+      app: leffes-tomcat-node
   replicas: 2
   template:
     metadata:
       labels:
-        app: tomcat
+        app: leffes-tomcat-node
     spec:
       containers:
-      - name: tomcat
-        image: tomcat:9.0
-        ports:
-        - containerPort: 8080
+        - name: tomcat
+          image: tomcat:9.0
+          ports:
+            - containerPort: 8080
