@@ -48,26 +48,57 @@ spec:
     - name: bar-service-prt
       port: 5678
 ---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: dhb-app
+  labels:
+    app: dhb
+spec:
+  containers:
+    - name: dhb-app
+      image: hashicorp/http-echo:0.2.3
+      args:
+        - '-text=default'
+---
+# This service isn't working, the ingress can not find the default http backend.
+# The output of 'kubectl describe ingress' says '<error: endpoints 
+# "default-http-backend" not found>' 
+kind: Service
+apiVersion: v1
+metadata:
+  name: default-http-backend
+  namespace: ingress-nginx
+spec:
+  selector:
+    app: dhb
+  ports:
+    # Default port used by the image
+    - name: dhb-service-prt
+      port: 80
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
   name: example-ingress
 spec:
   rules:
-    - http:
-        paths:
-          - path: /foo
-            pathType: Prefix
-            backend:
-              service:
-                name: foo-service
-                port:
-                  name: foo-service-prt
-          - path: /bar
-            pathType: Prefix
-            backend:
-              service:
-                name: bar-service
-                port:
-                  name: bar-service-prt
+  - http:
+      paths:
+      - path: /foo
+        pathType: Prefix
+        backend:
+          service:
+            name: foo-service
+            port:
+              number: 5678
+      - path: /bar
+        pathType: Prefix
+        backend:
+          service:
+            name: bar-service
+            port:
+              name: bar-service-prt
 ---
