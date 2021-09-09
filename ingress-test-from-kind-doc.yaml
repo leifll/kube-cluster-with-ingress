@@ -1,3 +1,5 @@
+# This file is originally taken from the kind documentation. It's a sort of
+# kubernetes hello world.
 kind: Pod
 apiVersion: v1
 metadata:
