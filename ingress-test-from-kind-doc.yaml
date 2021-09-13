@@ -70,7 +70,6 @@ kind: Service
 apiVersion: v1
 metadata:
   name: default-http-backend
-  namespace: ingress-nginx
 spec:
   selector:
     app: dhb
